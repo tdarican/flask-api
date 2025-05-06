@@ -1,28 +1,18 @@
-services:
-  - type: web
-    name: flask-api
-    runtime: python
-    buildCommand: ""
-    startCommand: "gunicorn app:app"
-    envVars:
-      - key: PORT
-        value: 10000
-        services:
-  - type: web
-    name: flask-api
-    runtime: python
-    buildCommand: |
-      apt-get update
-      apt-get install -y wget curl unzip
-      wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-      dpkg -i google-chrome-stable_current_amd64.deb
-      apt-get install -y -f
-      apt-get install -y wget curl unzip
-      wget https://chromedriver.storage.googleapis.com/113.0.5672.63/chromedriver_linux64.zip
-      unzip chromedriver_linux64.zip
-      mv chromedriver /usr/local/bin
-      ./render-build.sh
-    startCommand: "gunicorn app:app"
-    envVars:
-      - key: PORT
-        value: 10000
+from flask import Flask, jsonify
+from playwright.sync_api import sync_playwright
+
+app = Flask(__name__)
+
+@app.route('/instagram/<username>')
+def fetch_instagram(username):
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.goto(f"https://www.instagram.com/{username}/", timeout=60000)
+        page.wait_for_timeout(3000)  # sayfanın yüklenmesini bekle
+        html = page.content()
+        browser.close()
+        return jsonify({"html": html})
+
+if __name__ == '__main__':
+    app.run()
