@@ -7,3 +7,21 @@ services:
     envVars:
       - key: PORT
         value: 10000
+        services:
+  - type: web
+    name: flask-api
+    runtime: python
+    buildCommand: |
+      apt-get update
+      apt-get install -y wget curl unzip
+      wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+      dpkg -i google-chrome-stable_current_amd64.deb
+      apt-get install -y -f
+      apt-get install -y wget curl unzip
+      wget https://chromedriver.storage.googleapis.com/113.0.5672.63/chromedriver_linux64.zip
+      unzip chromedriver_linux64.zip
+      mv chromedriver /usr/local/bin
+    startCommand: "gunicorn app:app"
+    envVars:
+      - key: PORT
+        value: 10000
